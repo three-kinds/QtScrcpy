@@ -70,11 +70,18 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
             //log = m_adb.getStdOut();
             if (args.contains("devices")) {
                 QStringList devices = m_adb.getDevicesSerialFromStdOut();
+                // 声明一个QMap nickname2serial
+                QMap<QString, QString> nickname2serial;
+                // 遍历devices，将nickname2serial填充
+                for (auto &item : devices) {
+                    nickname2serial[Config::getInstance().getNickName(item) + "-" + item] = item;
+                }
                 ui->serialBox->clear();
                 ui->connectedPhoneList->clear();
-                for (auto &item : devices) {
-                    ui->serialBox->addItem(item);
-                    ui->connectedPhoneList->addItem(Config::getInstance().getNickName(item) + "-" + item);
+                // 按key asc顺序遍历nickname2serial，将nickname与serial填充到connectedPhoneList与serialBox
+                for (auto it = nickname2serial.constBegin(); it != nickname2serial.constEnd(); ++it) {
+                    ui->connectedPhoneList->addItem(it.key());
+                    ui->serialBox->addItem(it.value());
                 }
             } else if (args.contains("show") && args.contains("wlan0")) {
                 QString ip = m_adb.getDeviceIPFromStdOut();
